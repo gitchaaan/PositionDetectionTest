@@ -38,17 +38,17 @@ public class ProximityActivity extends Activity {
         double lng = getIntent().getDoubleExtra("lng", 0);
 
         String strLocation = Double.toString(lat)+","+Double.toString(lng);
-        String addr = RevGeoCode(lat, lng);
+        //String addr = RevGeoCode(lat, lng);
 
         if(proximity_entering){
             Toast.makeText(getBaseContext(),"Entering the region"  ,Toast.LENGTH_LONG).show();
             notificationTitle = "Proximity - Entry";
-            notificationContent = "Entered the region:" + strLocation + "\n" + addr;
+            //notificationContent = "Entered the region:" + strLocation + "\n" + addr;
             tickerMessage = "Entered the region:" + strLocation;
         }else{
             Toast.makeText(getBaseContext(),"Exiting the region"  ,Toast.LENGTH_LONG).show();
             notificationTitle = "Proximity - Exit";
-            notificationContent = "Exited the region:" + strLocation + "\n" + addr;
+            //notificationContent = "Exited the region:" + strLocation + "\n" + addr;
             tickerMessage = "Exited the region:" + strLocation;
         }
 
@@ -89,7 +89,7 @@ public class ProximityActivity extends Activity {
         finish();
     }
 
-    private String RevGeoCode(double lat, double lng) {
+    /*private String RevGeoCode(double lat, double lng) {
         String ret = "";
         try {
 
@@ -103,5 +103,5 @@ public class ProximityActivity extends Activity {
             e.printStackTrace();
         }
         return ret;
-    }
+    }*/
 }
