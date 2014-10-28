@@ -6,12 +6,18 @@ import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.location.Address;
+import android.location.Geocoder;
 import android.location.LocationManager;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.widget.Toast;
+
+import java.io.IOException;
+import java.util.List;
+import java.util.Locale;
 
 /**
  * Created by Owner on 2014/10/28.
@@ -32,16 +38,17 @@ public class ProximityActivity extends Activity {
         double lng = getIntent().getDoubleExtra("lng", 0);
 
         String strLocation = Double.toString(lat)+","+Double.toString(lng);
+        String addr = RevGeoCode(lat, lng);
 
         if(proximity_entering){
             Toast.makeText(getBaseContext(),"Entering the region"  ,Toast.LENGTH_LONG).show();
             notificationTitle = "Proximity - Entry";
-            notificationContent = "Entered the region:" + strLocation;
+            notificationContent = "Entered the region:" + strLocation + "\n" + addr;
             tickerMessage = "Entered the region:" + strLocation;
         }else{
             Toast.makeText(getBaseContext(),"Exiting the region"  ,Toast.LENGTH_LONG).show();
             notificationTitle = "Proximity - Exit";
-            notificationContent = "Exited the region:" + strLocation;
+            notificationContent = "Exited the region:" + strLocation + "\n" + addr;
             tickerMessage = "Exited the region:" + strLocation;
         }
 
@@ -80,5 +87,21 @@ public class ProximityActivity extends Activity {
 
         /** Finishes the execution of this activity */
         finish();
+    }
+
+    private String RevGeoCode(double lat, double lng) {
+        String ret = "";
+        try {
+
+            Geocoder gcd = new Geocoder(this, Locale.getDefault());
+            List<Address> addresses = gcd.getFromLocation(lat, lng, 1);
+            if (addresses.size() > 0) {
+                ret = addresses.get(0).getLocality();
+            }
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        return ret;
     }
 }
