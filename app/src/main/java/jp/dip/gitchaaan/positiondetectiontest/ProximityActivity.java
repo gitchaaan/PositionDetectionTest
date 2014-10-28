@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.location.LocationManager;
+import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
@@ -26,17 +27,22 @@ public class ProximityActivity extends Activity {
 
         boolean proximity_entering = getIntent().getBooleanExtra(LocationManager.KEY_PROXIMITY_ENTERING, true);
 
+        double lat = getIntent().getDoubleExtra("lat", 0);
+
+        double lng = getIntent().getDoubleExtra("lng", 0);
+
+        String strLocation = Double.toString(lat)+","+Double.toString(lng);
+
         if(proximity_entering){
-            Toast.makeText(getBaseContext(), "Entering the region", Toast.LENGTH_LONG).show();
-            notificationTitle="Proximity - Entry";
-            notificationContent="Entered the region";
-            tickerMessage = "Entered the region";
+            Toast.makeText(getBaseContext(),"Entering the region"  ,Toast.LENGTH_LONG).show();
+            notificationTitle = "Proximity - Entry";
+            notificationContent = "Entered the region:" + strLocation;
+            tickerMessage = "Entered the region:" + strLocation;
         }else{
             Toast.makeText(getBaseContext(),"Exiting the region"  ,Toast.LENGTH_LONG).show();
-            notificationTitle="Proximity - Exit";
-            notificationContent="Exited the region";
-            tickerMessage = "Exited the region";
-
+            notificationTitle = "Proximity - Exit";
+            notificationContent = "Exited the region:" + strLocation;
+            tickerMessage = "Exited the region:" + strLocation;
         }
 
         Intent notificationIntent = new Intent(getApplicationContext(),NotificationView.class);
@@ -59,7 +65,8 @@ public class ProximityActivity extends Activity {
                 .setSmallIcon(R.drawable.ic_launcher)
                 .setAutoCancel(true)
                 .setTicker(tickerMessage)
-                .setContentIntent(pendingIntent);
+                .setContentIntent(pendingIntent)
+                .setSound(RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION));
 
 
         /** Creating a notification from the notification builder */

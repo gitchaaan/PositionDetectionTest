@@ -29,6 +29,7 @@ public class MapsActivity extends FragmentActivity {
     LocationManager locationManager;
     PendingIntent pendingIntent;
     SharedPreferences sharedPreferences;
+    int locationCount = 0;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -56,31 +57,40 @@ public class MapsActivity extends FragmentActivity {
             // Getting LocationManager object from System Service LOCATION_SERVICE
             locationManager = (LocationManager) getSystemService(LOCATION_SERVICE);
 
-
             // Opening the sharedPreferences object
             sharedPreferences = getSharedPreferences("location", 0);
 
-            // Getting stored latitude if exists else return 0
-            String lat = sharedPreferences.getString("lat", "0");
-
-            // Getting stored longitude if exists else return 0
-            String lng = sharedPreferences.getString("lng", "0");
+            // Getting number of locations already stored
+            locationCount = sharedPreferences.getInt("locationCount", 0);
 
             // Getting stored zoom level if exists else return 0
             String zoom = sharedPreferences.getString("zoom", "0");
+            // If locations are already saved
+            if(locationCount!=0){
 
-            // If coordinates are stored earlier
-            if (!lat.equals("0")) {
-                // Drawing circle on the map
-                drawCircle(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                String lat = "";
+                String lng = "";
 
-                // Drawing marker on the map
-                drawMarker(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                // Iterating through all the locations stored
+                for(int i=0;i<locationCount;i++){
 
-                // Moving CameraPosition to previously clicked position
+                    // Getting the latitude of the i-th location
+                    lat = sharedPreferences.getString("lat"+i,"0");
+
+                    // Getting the longitude of the i-th location
+                    lng = sharedPreferences.getString("lng"+i,"0");
+
+                    // Drawing marker on the map
+                    drawMarker(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+
+                    // Drawing circle on the map
+                    drawCircle(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng)));
+                }
+
+                // Moving CameraPosition to last clicked position
                 mMap.moveCamera(CameraUpdateFactory.newLatLng(new LatLng(Double.parseDouble(lat), Double.parseDouble(lng))));
 
-                // Setting the zoom level in the map
+                // Setting the zoom level in the map on last position  is clicked
                 mMap.animateCamera(CameraUpdateFactory.zoomTo(Float.parseFloat(zoom)));
             }
 
@@ -89,8 +99,8 @@ public class MapsActivity extends FragmentActivity {
                 @Override
                 public void onMapClick(LatLng point) {
 
-                    // Removes the existing marker from the Google Map
-                    mMap.clear();
+                    // Incrementing location count
+                    locationCount++;
 
                     // Drawing marker on the map
                     drawMarker(point);
@@ -101,9 +111,15 @@ public class MapsActivity extends FragmentActivity {
                     // This intent will call the activity ProximityActivity
                     Intent proximityIntent = new Intent("jp.dip.gitchaaan.activity.proximity");
 
+                    // Passing latitude to the PendingActivity
+                    proximityIntent.putExtra("lat",point.latitude);
+
+                    // Passing longitude to the PendingActivity
+                    proximityIntent.putExtra("lng", point.longitude);
+
                     // Creating a pending intent which will be invoked by LocationManager when the specified region is
                     // entered or exited
-                    pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, proximityIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, proximityIntent,Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     // Setting proximity alert
                     // The pending intent will be invoked when the device enters or exits the region 20 meters
@@ -114,11 +130,14 @@ public class MapsActivity extends FragmentActivity {
                     /** Opening the editor object to write data to sharedPreferences */
                     SharedPreferences.Editor editor = sharedPreferences.edit();
 
-                    /** Storing the latitude of the current location to the shared preferences */
-                    editor.putString("lat", Double.toString(point.latitude));
+                    // Storing the latitude for the i-th location
+                    editor.putString("lat"+ Integer.toString((locationCount-1)), Double.toString(point.latitude));
 
-                    /** Storing the longitude of the current location to the shared preferences */
-                    editor.putString("lng", Double.toString(point.longitude));
+                    // Storing the longitude for the i-th location
+                    editor.putString("lng"+ Integer.toString((locationCount-1)), Double.toString(point.longitude));
+
+                    // Storing the count of locations or marker count
+                    editor.putInt("locationCount", locationCount);
 
                     /** Storing the zoom level to the shared preferences */
                     editor.putString("zoom", Float.toString(mMap.getCameraPosition().zoom));
@@ -127,7 +146,6 @@ public class MapsActivity extends FragmentActivity {
                     editor.commit();
 
                     Toast.makeText(getBaseContext(), "Proximity Alert is added", Toast.LENGTH_SHORT).show();
-
                 }
             });
 
@@ -136,7 +154,7 @@ public class MapsActivity extends FragmentActivity {
                 public void onMapLongClick(LatLng point) {
                     Intent proximityIntent = new Intent("jp.dip.gitchaaan.activity.proximity");
 
-                    pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, proximityIntent, Intent.FLAG_ACTIVITY_NEW_TASK);
+                    pendingIntent = PendingIntent.getActivity(getBaseContext(), 0, proximityIntent,Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     // Removing the proximity alert
                     locationManager.removeProximityAlert(pendingIntent);
@@ -165,6 +183,12 @@ public class MapsActivity extends FragmentActivity {
 
         // Setting latitude and longitude for the marker
         markerOptions.position(point);
+
+        // Adding InfoWindow title
+        markerOptions.title("Location Coordinates");
+
+        // Adding InfoWindow contents
+        markerOptions.snippet(Double.toString(point.latitude) + "," + Double.toString(point.longitude));
 
         // Adding marker on the Google Map
         mMap.addMarker(markerOptions);
